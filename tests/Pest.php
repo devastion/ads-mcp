@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /*
@@ -43,6 +44,11 @@ expect()->extend('toBeOne', function () {
 | global functions to help you to reduce the number of lines of code in your test files.
 |
 */
+
+function v1Search(string $query = ''): TestResponse
+{
+    return test()->getJson('/api/v1/ads'.($query === '' ? '' : '?'.$query));
+}
 
 function something()
 {
