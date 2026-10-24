@@ -1,5 +1,9 @@
 <?php
 
+use Illuminate\Auth\AuthServiceProvider;
+use Illuminate\Auth\Passwords\PasswordResetServiceProvider;
+use Illuminate\Support\ServiceProvider;
+
 return [
 
     /*
@@ -13,7 +17,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'App'),
 
     /*
     |--------------------------------------------------------------------------
@@ -122,5 +126,10 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
+    'providers' => ServiceProvider::defaultProviders()->except([
+        AuthServiceProvider::class,
+        PasswordResetServiceProvider::class,
+    ])->toArray(),
 
 ];
