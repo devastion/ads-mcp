@@ -1,0 +1,81 @@
+---
+x-app: &app
+  build:
+    context: .
+    args:
+      UID: ${UID:-1000}
+      GID: ${GID:-1000}
+  volumes:
+    - .:/app
+    - vendor:/app/vendor
+    - node_modules:/app/node_modules
+  environment: &app-env
+    APP_ENV: local
+    APP_DEBUG: "true"
+    APP_URL: http://localhost:8000
+    DB_CONNECTION: pgsql
+    DB_HOST: postgres
+    DB_PORT: "5432"
+    DB_DATABASE: ${POSTGRES_DB:-ads}
+    DB_USERNAME: ${POSTGRES_USER:-ads}
+    DB_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+    SESSION_DRIVER: file
+    QUEUE_CONNECTION: database
+    CACHE_STORE: database
+
+services:
+  ads-api:
+    <<: *app
+    environment:
+      <<: *app-env
+      APP_BOOTSTRAP: "1"
+      PHP_CLI_SERVER_WORKERS: "4"
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/up"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
+  vite:
+    <<: *app
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+    ports:
+      - "127.0.0.1:5173:5173"
+    depends_on:
+      ads-api:
+        condition: service_healthy
+
+  queue:
+    <<: *app
+    command: ["php", "artisan", "queue:work", "--tries=3", "--timeout=90"]
+    restart: unless-stopped
+    depends_on:
+      ads-api:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ads}
+      POSTGRES_USER: ${POSTGRES_USER:-ads}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
+  vendor:
+  node_modules:

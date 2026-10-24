@@ -1,0 +1,15 @@
+.git
+.github
+.agents
+.pi
+.env*
+!.env.example
+**/.npmrc
+node_modules
+vendor
+public/build
+public/hot
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
