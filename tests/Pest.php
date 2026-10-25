@@ -46,6 +46,15 @@ expect()->extend('toBeOne', function () {
 |
 */
 
+/**
+ * Run the app as if APP_ENV=local, with Vite assets stubbed out for Inertia page tests.
+ */
+function asLocal(): void
+{
+    test()->withoutVite();
+    app()->detectEnvironment(fn (): string => 'local');
+}
+
 function v1Key(): string
 {
     return app(IssueApiKey::class)->handle('v1 contract test')->secret;
