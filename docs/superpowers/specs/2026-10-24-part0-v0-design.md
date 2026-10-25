@@ -1,6 +1,6 @@
 # Part 0 design: data model, seed, live ingest, v0 endpoint
 
-Date: 2026-10-25. Status: **approved by the user**. Spec: `ASSESSMENT.md` §0.1–0.4 (quoted below where it binds). Guard: `.agents/skills/v0-contract-guard/` (`references/v0-contract.md` is the v0 contract in checklist form).
+Date: 2026-10-25. Status: **approved by the user; implemented** on branch `part-0-v0` (`7ffe49a`) and carried into `main` by `c25232f`. Deviations found during the build are marked *Built:* below and listed under "Sync notes" at the end (synced 2026-10-25). Spec: `ASSESSMENT.md` §0.1–0.4 (quoted below where it binds). Guard: `.agents/skills/v0-contract-guard/` (`references/v0-contract.md` is the v0 contract in checklist form).
 
 ## Intent and why
 
@@ -102,7 +102,9 @@ It uses the app timezone (UTC) and returns a non-negative int. Both v0 and v1 ca
 ### Live ingest
 - `php artisan ads:ingest` loops every second until it receives SIGINT or SIGTERM (Laravel's `trap()`). It finishes the current tick and exits 0.
 - `--ticks=N` (0 = forever, the default) and `--interval=SECONDS` (default 1) exist for tests and demos. Tests run with `--interval=0`; nothing sleeps for real in tests.
+  - *Built:* `--interval` was dropped as YAGNI. The command sleeps with `Sleep::for(1)->second()` and tests use `Sleep::fake()`. Only `--ticks` exists.
 - Each tick is one Action (`app/Actions/IngestAdsTick` or similar), run in one transaction, with an injected random source so tests are exact:
+  - *Built:* the Action is `App\Actions\IngestAds`, returning `App\DTO\IngestResult`. Ingested ads take their brand's niche and `countries = ["US"]`. Deactivations are picked with the database's random order, so tests check counts and invariants, not which ads.
   - Insert 1–5 ads for existing `brand_id`/`brand_name` pairs, with `discovered_at = now`. ~30% get `start_date = today - (1..90) days`; the rest get `start_date = today`.
   - *My call:* an ingested ad gets a null `impression_rank` with the same ~40% probability as the seed. Otherwise it gets its brand's current max rank + 1, which keeps ranks unique within a brand.
   - Deactivate 1–2 random active ads: `status=inactive`, `end_date=today`.
@@ -117,6 +119,7 @@ Tests run on **Postgres**, not SQLite. `phpunit.xml` points at an `ads_testing` 
 
 ### v0 endpoint
 - The route is `GET /api/v0/ads` in a new `routes/api.php`, registered in `bootstrap/app.php`. The v0 group gets a v0-only key middleware, `App\Http\Middleware\AuthenticateV0ApiKey`. It reads the `api_key` query param, which must be a string; on a miss it returns 400. The matched `ApiKey` is made available on the request for Part 3.
+  - *Built:* Part 0 did not attach the key (nothing read it). Part 3 adds it as the `api_key` request attribute, plus the revocation check.
 - The v0 HTTP layer turns the query string into an `App\DTO\AdSearchFilters`: `?string $q`, `?Niche $niche`, `?AdFormat $format`, `?AdStatus $status`, `int $page`, `int $perPage`. Invalid values become null or the default. This parsing must never return 422. It is v0-specific; the DTO itself is shared.
 - `App\Actions\SearchAds::handle(AdSearchFilters)` returns the page of ads plus `total`. The sort is `start_date desc` **with no tiebreaker**. Paging is offset `(page-1)*perPage`, and `total` comes from a count over the same filters.
 - An `App\Http\Resources\V0\AdResource` whitelists exactly 8 keys: `id`, `brand` (= `brand_name`), `headline`, `niche` (the **display name**), `format`, `status`, `start_date` (`Y-m-d`), `days_active`. The controller builds the body `{"data": […], "page": <int>, "total": <int>}` itself, so no paginator `meta` or `links` appear.
@@ -152,3 +155,22 @@ File and test names (following `testing-best-practices`); factory states; the ex
 ## Assumptions to record in `README.md`
 
 The same-day seed determinism; tests requiring Postgres; the dev key existing only in local; denormalised brands; `id` as a JSON integer; ingested ads for existing brands only; every edge-case ruling above; server errors under v0 returning 400 by literal reading of §0.4.
+
+## Sync notes (2026-10-25)
+
+What the build and the later parts changed relative to this doc. The v0 contract test (`tests/Feature/Http/Controllers/V0/AdControllerTest.php`) is unedited throughout.
+
+**Built differently, recorded in the Part 0 plan and `README.md`:**
+- No `--interval` on `ads:ingest` (see above).
+- The emptiness check on start is the `ads:seed-if-empty` command.
+- `AdSeeder` refuses to run when `APP_ENV=production`, because it truncates `ads`.
+
+**Later parts that reach v0:**
+- **Part 1** narrowed decision B. The shared unit is `App\Actions\AdSearchPredicates` (`q`, `niche`, `format`, `status`, `started_after`), not the whole `SearchAds`. `SearchAds` keeps v0's `start_date desc` order and offset paging, and passes `niche` as a one-element list. v0 rows and order are unchanged.
+- **Part 3** (in progress on `part-3-keys-metering`) adds middleware to `GET /api/v0/ads`, in this order: auth, `ThrottleApiKey`, `RequireScope:search:read`, `MeterApiUsage`. These v0 changes are sanctioned. Each one keeps the frozen `400 {"error":"Invalid request"}` body, and Part 3's plan (Task 8, not done yet) pins them in a separate v0 test file:
+  - a revoked key gives 400;
+  - a key without `search:read` gives 400;
+  - the 61st call in a minute gives 400 with a `Retry-After` header, not 429 (user decision);
+  - an invalid or repeated `Idempotency-Key` header gives 400;
+  - an exhausted monthly quota gives 400;
+  - a successful call writes a ledger row, and its body does not change.

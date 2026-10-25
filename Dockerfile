@@ -16,7 +16,7 @@ RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl git unzip \
     && rm -rf /var/lib/apt/lists/* \
-    && install-php-extensions pdo_pgsql pgsql pcntl intl zip bcmath
+    && install-php-extensions pdo_pgsql pgsql pcntl intl zip bcmath redis
 
 RUN groupadd --gid "${GID}" app \
     && useradd --uid "${UID}" --gid app --create-home app \

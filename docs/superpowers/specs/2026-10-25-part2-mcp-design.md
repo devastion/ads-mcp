@@ -1,8 +1,8 @@
 # Part 2 design: MCP over v1 REST
 
-Date: 2026-10-25. Status: **draft — awaiting approval of this written design**.
+Date: 2026-10-25. Status: **approved by the user on 2026-10-25** (recorded in `docs/superpowers/plans/2026-10-25-part2-mcp.md`). **Partly implemented:** plan Tasks 1–2 (the two REST reads) are on branch `part-2-mcp` (`6c3a8bb`). Tasks 3–12 (the MCP server itself, the evaluation) have not started. They wait on Part 3, which is being built on `part-3-keys-metering` from `part-2-mcp`. See "Sync notes" at the end (synced 2026-10-25).
 
-Only Phase 1 is authorized. This document does not authorize implementation, dependency changes, a plan, commits, or evaluation runs. Decisions labelled **user** were selected during brainstorming; details labelled **proposal** become approved only if this document is approved.
+Decisions labelled **user** were selected during brainstorming. Details labelled **proposal** were approved with this document.
 
 ## Intent and assessment contract
 
@@ -24,9 +24,9 @@ Read Part 0's design/plan and Part 1's design/plan, not just this document. Rele
 
 - `docs/superpowers/specs/2026-10-24-part0-v0-design.md`
 - `docs/superpowers/plans/2026-10-24-part0-v0.md`
-- Part 1 worktree: `docs/superpowers/specs/2026-10-25-part1-v1-design.md` and `docs/superpowers/plans/2026-10-25-part1-v1.md`.
+- `docs/superpowers/specs/2026-10-24-part1-v1-design.md` and `docs/superpowers/plans/2026-10-24-part1-v1.md`. In the `part-0-v0` and `part-1-v1` worktrees, the same files are named with `2026-10-25-`.
 
-Inspection is a snapshot, not a claim that another session has finished:
+Inspection is a snapshot, not a claim that another session has finished. The table below is the state **at design time**; the current state is under "Sync notes".
 
 | Surface | Verified state during design |
 | --- | --- |
@@ -120,6 +120,8 @@ The commit point is the successful REST operation, not proof that the model rece
 ### Shared prerequisite details [proposal]
 
 Missing/invalid/revoked Bearer credentials reuse the shared catalogue (`api_key_missing`, `api_key_invalid` for invalid/revoked credentials); query-string credentials are rejected with `api_key_in_query`. Scope denial needs a shared 403 entry, proposed `insufficient_scope`, with `retryable:false` and a request for a `search:read` key. If Part 3 has already established another scope code, adopt that exact code in the final plan and both surfaces instead of adding an MCP alias. Resolving this with the shared foundation is a prerequisite, not permission to implement key features in Part 2.
+
+*Settled by Part 3:* the code is `insufficient_scope` (403, `retryable:false`, next step "Use a key with the search:read scope."). Part 3 also adds `quota_exceeded` (403, `details.resets_at`), which MCP passes through the same way. MCP reuses the Part 3 pieces: `AuthenticateV1ApiKey` (revocation included), `RequireScope`, and `App\Actions\ConsumeRateLimit::handle(ApiKey)` for local debits. `ConsumeRateLimit` throws `TooManyRequestsHttpException` carrying `Retry-After`.
 
 ## Exact model-facing tool contract [proposal]
 
@@ -311,7 +313,7 @@ For every later shared-code task: run the v0 guard before and after, preserve `t
 
 The approved choices above do not approve the as-yet-unreviewed written details. Review especially the REST-success billing commit point, local/control rate debits, header-only retry limitation, extra REST reads, paged detail, and byte-budget/error mechanics.
 
-After explicit approval of this document, the next separately authorized phase is writing the implementation plan, then waiting for plan approval. No worktree/branch switch, implementation or package installation now. The eventual isolated `part-2-mcp` worktree must start from the agreed completed v1/shared-foundation base, not current main by default.
+*Done:* the document was approved and the plan was written (`docs/superpowers/plans/2026-10-25-part2-mcp.md`). The `part-2-mcp` worktree exists. MCP Tasks 3 onward continue on a base that contains the finished Part 3 work.
 
 Builder-owned details: class names, generator invocations/custom namespaces, exact HTTP client APIs after documentation verification, serializer helper implementation, configured origin/base-URL names, test file grouping, and process harness mechanics within the stated contracts. Do not leave shared accounting semantics or an unsupported protocol handshake to guesswork.
 
@@ -322,3 +324,20 @@ Builder-owned details: class names, generator invocations/custom namespaces, exa
 - Installed `vendor/laravel/mcp`: `Server`, `Registrar`, `ToolInvoker`, `CallTool`, `HttpTransport`, `ProtocolVersion`, response/error conversion. Verify again against the runtime dependency actually selected.
 - [MCP tools, 2026-07-28](https://modelcontextprotocol.io/specification/2026-07-28/server/tools) and [Streamable HTTP](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http); also checked 2025-06-18 behavior for older handshake compatibility. Do not impose the newest revision on clients without negotiation.
 - Installed Pi-Bolt `docs/mcp.md`: HTTP headers, tool exposure, result handling, and retry cautions. The document mentions both transport retries and restrictions on tool retries; confirm actual observed behavior rather than claiming exactly-once transport delivery.
+
+## Sync notes (2026-10-25)
+
+**Current state:**
+
+| Surface | State |
+| --- | --- |
+| `main` | `1185996`: Parts 0 and 1. No v1 detail or niches routes, no MCP. |
+| `part-2-mcp` | `6c3a8bb`: `GET /api/v1/ads/{id}` and `GET /api/v1/niches`, which match the contracts in this doc. They are built by `AdShowController`, `ShowAdRequest`, `AdDetailResource`, `PageAdBody`, `NicheController`, `ListNichesRequest` and `NicheResource`, on a new shared `StrictQueryRequest`. |
+| `part-3-keys-metering` | Built from `part-2-mcp`. Scopes and revocation are committed (`d7a1f8d`). The throttle, scope check, meter, quota and concurrency work is uncommitted. |
+| `laravel/mcp` | Still only transitive (through `laravel/boost`). Task 3's `composer require` has not run. |
+| MCP endpoint, tools, budgets, evaluation | Not started. No `MCP_EVAL.md`. |
+
+**Open items for Task 3 onward:**
+- **MCP surface marker.** Part 3 defines `MeterApiUsage::ORIGIN_HEADER = 'X-Gethookd-Origin'` as the way to record `surface = mcp`. For now it is stripped from every request, so forwarded calls are metered as `v1`. Two parts of this doc constrain how the marker can be trusted: "do not use a caller-controlled bypass header", and origin "must not partition the limiter or idempotency namespace". Part 2 has to choose that mechanism, for example a server-side secret or a loopback-only check, before setting the header. Until then, usage rows from MCP read `surface = v1`.
+- **Rate-limit store.** The user chose Redis for the shared limiter, failing closed (see the Part 3 spec). The loopback setup in Task 9 needs that Redis store, alongside the shared Postgres.
+- **Part 4's MCP signal.** Part 4 adds `TouchMcpRequest(ApiKey)` on every authenticated MCP request, `initialize` included. Its spec is `2026-10-25-part4-developer-page-design.md`. Task 3's auth path is where that call goes.

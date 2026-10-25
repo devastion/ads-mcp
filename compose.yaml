@@ -22,18 +22,22 @@ x-app: &app
     SESSION_DRIVER: file
     QUEUE_CONNECTION: database
     CACHE_STORE: database
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
 
 services:
   ads-api:
-    <<: *app
+    !!merge <<: *app
     environment:
-      <<: *app-env
+      !!merge <<: *app-env
       APP_BOOTSTRAP: "1"
       PHP_CLI_SERVER_WORKERS: "4"
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8000/up"]
@@ -43,7 +47,7 @@ services:
       start_period: 30s
 
   vite:
-    <<: *app
+    !!merge <<: *app
     command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
     ports:
       - "127.0.0.1:5173:5173"
@@ -52,7 +56,7 @@ services:
         condition: service_healthy
 
   queue:
-    <<: *app
+    !!merge <<: *app
     command: ["php", "artisan", "queue:work", "--tries=3", "--timeout=90"]
     restart: unless-stopped
     depends_on:
@@ -60,7 +64,7 @@ services:
         condition: service_healthy
 
   ingest:
-    <<: *app
+    !!merge <<: *app
     command: ["php", "artisan", "ads:ingest"]
     profiles: ["ingest"]
     restart: unless-stopped
@@ -81,6 +85,17 @@ services:
       - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 10
