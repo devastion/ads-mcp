@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\IssueApiKey;
+use App\Enums\Scope;
 use App\Models\ApiKey;
 use Illuminate\Support\Facades\DB;
 
@@ -32,4 +33,12 @@ it('returns the existing key when issuing a known secret again', function () {
 
     expect($second->apiKey->is($first->apiKey))->toBeTrue()
         ->and(ApiKey::count())->toBe(1);
+});
+
+it('stores the scopes it is given and defaults to search:read', function () {
+    $default = app(IssueApiKey::class)->handle('default');
+    $managing = app(IssueApiKey::class)->handle('managing', null, [Scope::SearchRead, Scope::KeysManage]);
+
+    expect($default->apiKey->fresh()->scopes)->toBe(['search:read'])
+        ->and($managing->apiKey->fresh()->scopes)->toBe(['search:read', 'keys:manage']);
 });
