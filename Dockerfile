@@ -26,6 +26,6 @@ RUN groupadd --gid "${GID}" app \
 WORKDIR /app
 USER app
 
-COPY --chown=app:app docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY --chown=app:app --chmod=755 docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000", "--no-reload"]

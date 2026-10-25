@@ -151,4 +151,3 @@ These apply to one walk: a chain of requests linked by `next_cursor`, with the s
 ## Unfinished
 
 - Parts 1–4: v1 search, MCP server, scopes, revocation, rate limits, metering and quotas, the developer page, `DESIGN.md`, `MCP_EVAL.md`, `AI_NOTES.md`.
-- An end-to-end run of `docker compose up` on a fresh volume, and of the `ingest` profile under compose.
