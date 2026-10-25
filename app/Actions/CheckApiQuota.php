@@ -5,13 +5,15 @@ namespace App\Actions;
 use App\Enums\ApiErrorCode;
 use App\Http\Exceptions\V1\ApiErrorException;
 use App\Models\ApiKey;
-use App\Models\ApiUsage;
 
 class CheckApiQuota
 {
     public const MONTHLY_BILLED_CALLS = 1000;
 
-    public function __construct(private readonly RecordApiUsage $usage) {}
+    public function __construct(
+        private readonly RecordApiUsage $usage,
+        private readonly CountBillableCalls $counter,
+    ) {}
 
     /**
      * Refuse the call when the key has used its billed calls for this UTC month. A repeat of an already
@@ -23,11 +25,7 @@ class CheckApiQuota
     {
         $now = now()->utc();
 
-        $used = ApiUsage::query()
-            ->where('api_key_id', $key->getKey())
-            ->where('billed', true)
-            ->where('created_at', '>=', $now->startOfMonth())
-            ->count();
+        $used = $this->counter->handle([$key->getKey()], $now)[$key->getKey()];
 
         if ($used < self::MONTHLY_BILLED_CALLS) {
             return;
@@ -37,7 +35,7 @@ class CheckApiQuota
             return;
         }
 
-        $resetsAt = $now->startOfMonth()->addMonth()->toIso8601String();
+        $resetsAt = $this->counter->resetsAt($now)->toIso8601String();
 
         throw new ApiErrorException(
             ApiErrorCode::QuotaExceeded,
