@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Actions\CheckApiQuota;
 use App\Actions\RecordApiUsage;
 use App\Enums\ApiErrorCode;
 use App\Http\Exceptions\V1\ApiErrorException;
@@ -18,7 +19,10 @@ class MeterApiUsage
     /** Set only by the trusted server-side MCP forwarder; stripped from every other request. */
     public const ORIGIN_HEADER = 'X-Gethookd-Origin';
 
-    public function __construct(private readonly RecordApiUsage $recorder) {}
+    public function __construct(
+        private readonly RecordApiUsage $recorder,
+        private readonly CheckApiQuota $quota,
+    ) {}
 
     /**
      * @param  Closure(Request): (Response)  $next
@@ -28,10 +32,14 @@ class MeterApiUsage
         $request->headers->remove(self::ORIGIN_HEADER);
 
         $idempotencyKey = $this->idempotencyKey($request);
-        $startedAt = hrtime(true);
-
-        $response = $next($request);
         $key = $request->attributes->get('api_key');
+
+        if ($key instanceof ApiKey) {
+            $this->quota->handle($key, $idempotencyKey);
+        }
+
+        $startedAt = hrtime(true);
+        $response = $next($request);
 
         if ($key instanceof ApiKey && $response->isSuccessful()) {
             $this->recorder->handle(

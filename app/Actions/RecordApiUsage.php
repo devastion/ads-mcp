@@ -24,12 +24,7 @@ class RecordApiUsage
             if ($hash !== null) {
                 DB::select('select pg_advisory_xact_lock(hashtextextended(?, 0))', [$key->getKey().':'.$hash]);
 
-                $billed = ! ApiUsage::query()
-                    ->where('api_key_id', $key->getKey())
-                    ->where('idempotency_hash', $hash)
-                    ->where('billed', true)
-                    ->where('created_at', '>', now()->subHours(self::IDEMPOTENCY_WINDOW_HOURS))
-                    ->exists();
+                $billed = ! $this->alreadyBilled($key, $hash);
             }
 
             return ApiUsage::query()->create([
@@ -43,5 +38,18 @@ class RecordApiUsage
                 'idempotency_hash' => $hash,
             ]);
         });
+    }
+
+    /**
+     * Whether this key already paid for the idempotency hash (a sha256) within the last 24 hours.
+     */
+    public function alreadyBilled(ApiKey $key, string $hash): bool
+    {
+        return ApiUsage::query()
+            ->where('api_key_id', $key->getKey())
+            ->where('idempotency_hash', $hash)
+            ->where('billed', true)
+            ->where('created_at', '>', now()->subHours(self::IDEMPOTENCY_WINDOW_HOURS))
+            ->exists();
     }
 }
