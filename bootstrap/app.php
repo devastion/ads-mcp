@@ -43,7 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // v1 callers get a single error envelope for every failure, with fixed codes and no leaked exception detail.
         $exceptions->render(function (Throwable $exception, Request $request) {
-            if (! $request->is('api/v1', 'api/v1/*')) {
+            if (! $request->is('api/v1', 'api/v1/*', 'api/mcp')) {
                 return null;
             }
 
