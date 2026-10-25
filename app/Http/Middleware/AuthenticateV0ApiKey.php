@@ -16,9 +16,14 @@ class AuthenticateV0ApiKey
     {
         $secret = $request->query('api_key');
 
-        if (! is_string($secret) || $secret === '' || ApiKey::findBySecret($secret) === null) {
+        $key = is_string($secret) && $secret !== '' ? ApiKey::findBySecret($secret) : null;
+
+        if ($key === null || $key->isRevoked()) {
             abort(400);
         }
+
+        $key->forceFill(['last_used_at' => now()])->saveQuietly();
+        $request->attributes->set('api_key', $key);
 
         return $next($request);
     }

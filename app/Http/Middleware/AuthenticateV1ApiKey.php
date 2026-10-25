@@ -29,9 +29,14 @@ class AuthenticateV1ApiKey
             throw new ApiErrorException(ApiErrorCode::ApiKeyMissing, 'An API key is required.');
         }
 
-        if (ApiKey::findBySecret($secret) === null) {
+        $key = ApiKey::findBySecret($secret);
+
+        if ($key === null || $key->isRevoked()) {
             throw new ApiErrorException(ApiErrorCode::ApiKeyInvalid, 'The API key is not valid.');
         }
+
+        $key->forceFill(['last_used_at' => now()])->saveQuietly();
+        $request->attributes->set('api_key', $key);
 
         return $next($request);
     }

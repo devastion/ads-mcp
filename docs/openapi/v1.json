@@ -173,6 +173,132 @@
                     }
                 ]
             }
+        },
+        "/v1/ads/{id}": {
+            "get": {
+                "operationId": "v1.ads.show",
+                "tags": [
+                    "AdShow"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "body_offset",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    {
+                        "name": "body_limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 1000
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "body_text": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "body_text"
+                                            ],
+                                            "additionalProperties": {}
+                                        },
+                                        "body_offset": {
+                                            "type": "integer"
+                                        },
+                                        "body_has_more": {
+                                            "type": "string"
+                                        },
+                                        "body_next_offset": {
+                                            "type": [
+                                                "integer",
+                                                "null"
+                                            ]
+                                        },
+                                        "body_total_characters": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "body_offset",
+                                        "body_has_more",
+                                        "body_next_offset",
+                                        "body_total_characters"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/niches": {
+            "get": {
+                "operationId": "v1.niches",
+                "tags": [
+                    "Niche"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -202,6 +328,8 @@
                                     "invalid_parameter",
                                     "invalid_cursor",
                                     "cursor_mismatch",
+                                    "insufficient_scope",
+                                    "quota_exceeded",
                                     "rate_limited",
                                     "internal_error"
                                 ]

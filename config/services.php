@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'mcp' => [
+        // The REST API the MCP tools call. Set to a second listener (or multi-worker server) in production.
+        'rest_base_url' => env('MCP_REST_BASE_URL', env('APP_URL', 'http://localhost')),
+        'connect_timeout' => (float) env('MCP_REST_CONNECT_TIMEOUT', 2),
+        'timeout' => (float) env('MCP_REST_TIMEOUT', 10),
+        // Browser-style Origins allowed to call the endpoint. A request without an Origin header is always allowed.
+        'allowed_origins' => array_values(array_filter(array_map('trim', explode(',', (string) env('MCP_ALLOWED_ORIGINS', ''))))),
+    ],
+
 ];

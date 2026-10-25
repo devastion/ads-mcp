@@ -19,6 +19,8 @@ use LogicException;
  * @property AdStatus $status
  * @property CarbonImmutable $start_date
  * @property CarbonImmutable|null $end_date
+ * @property list<string>|null $countries
+ * @property CarbonImmutable $discovered_at
  */
 #[Fillable([
     'brand_id',
