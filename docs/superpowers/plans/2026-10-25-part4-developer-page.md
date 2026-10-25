@@ -10,6 +10,26 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-25-part4-developer-page-design.md` (draft; get the user's approval before Task 1). Also read `ASSESSMENT.md` Part 4, `docs/superpowers/specs/2026-10-25-part3-key-rate-limits-metering.md`, `docs/superpowers/specs/2026-10-25-part2-mcp-design.md`, `docs/superpowers/USER_DECISIONS.md` (Part 4 and cross-part sections), and `.agents/skills/v0-contract-guard/SKILL.md`. Skills to activate: `inertia-react-development`, `tailwindcss-development`, `wayfinder-development`, `laravel-best-practices`, `testing-best-practices`.
 
+## Execution record
+
+Implemented on `part-4-developer-complete` from `main` (`b76463f`), authorized by the user's request to implement this plan. The earlier draft approval marker is superseded by that request. No commits were requested or created; pre-existing staged changes were preserved.
+
+- Tasks 1–3 already existed. Their behavior was verified and reused rather than reimplemented. `CountBillableCalls::handle` accepts `iterable`, covering the planned array/Collection inputs.
+- A managed worktree was created outside the writable project directory. Execution continued on a dedicated feature branch in this checkout. The unused managed worktree was left untouched after setup.
+- Installed versions checked: PHP 8.5.12, Laravel 13.38.0, Inertia Laravel 3.5.2, Inertia React/core 3.9.1, MCP 1.1.1, Pest 5.3.3, Wayfinder 0.1.23. PHPStan is Larastan 3.13.2, not the stack heading's Larastan 7.
+- Boost tools were accessed through the installed `php artisan boost:mcp` stdio server: `search-docs` for HTTP requests, polling, validation; `database-schema` for `api_keys`; `get-absolute-url` resolved `http://localhost:8000/developer` and `/api/mcp`.
+- Installed Pi-Bolt 1.4.0 `docs/mcp.md` confirms user-level `~/.pi/agent/mcp.json` and the `mcpServers.gethookd.url` / `headers.Authorization` shape. No real secret was written to committed configuration.
+- Tasks 4–6 used failing tests before implementation. Creation/revocation reuse Part 3's Actions; MCP authentication now records the timestamp. Local-only middleware runs before CSRF so production/staging mutations return 404 even without a token; CSRF remains required locally.
+- Tasks 7–8 implemented the page, with transient secrets cleared on full Inertia navigation and late mutation callbacks cancelled. Partial polling preserves the reveal. Billing help is inline because README is not served by the application; README links its own billing rule.
+- Task 9: all seven mutations were caught by focused tests, with exact source restored after each. Neither v0 contract test was changed.
+- Task 10: README's developer section and corresponding status row were updated. `DESIGN.md` and `AI_NOTES.md` were not edited.
+
+Verification: baseline **419 tests / 4,193 assertions**; final **454 tests / 4,402 assertions**, all passing. Pint, PHPStan, TypeScript, frontend lint/format and production build pass. Cached-route developer access: **9 tests / 43 assertions**, passing; route cache cleared afterward. All seven mutation checks failed under their intended fault. The additive MCP timestamp migration was applied to the local database. Independent review and the scoped lifecycle re-review reported no remaining important findings.
+
+Repository-wide `npm run check` still reports 35 pre-existing documentation/config formatting issues; the 12 frontend files pass the scoped check. Build emits the existing optional `fontaine` fallback warning; no package was added.
+
+**User-run checks remain unverified:** clipboard success/denial fallback; secret removal after dismissal, reload and browser navigation; a real Pi-Bolt connection changing status; a timed setup walkthrough. No under-five-minutes claim is made. Run `composer test` for the full Composer gate. Detailed test and mutation evidence is kept in the ignored `.superpowers/sdd/2026-10-25-part4-developer-page/` workspace.
+
 ## Global Constraints
 
 - Local only: every developer route returns 404 unless `app()->isLocal()`, via middleware `EnsureLocalEnvironment` (not conditional route registration).

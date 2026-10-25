@@ -26,18 +26,19 @@ I've used `obra/superpowers`. You can read the [./docs] - they are AI generated.
 
 ### Part 1
 
-- Took me [ ]
-- Weakened auth [ ]? (check)
+- Took me 3h
 
 ### Part 2
 
-- Took me [ ]
-- Started when part 1 specs were ready
-  - [ ] Link specs when git worktree merged
+- Took me 45m
 
 ### Part 3
 
--
+- Took me 2h
+
+### Part 4
+
+- Took me around 15m (+ 15m homelab vps deploy)
 
 ## Skills
 

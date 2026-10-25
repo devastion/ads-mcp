@@ -9,4 +9,6 @@ Route::get('/', fn () => Inertia::render('welcome', ['isLocal' => app()->isLocal
 
 Route::middleware(EnsureLocalEnvironment::class)->prefix('developer')->group(function (): void {
     Route::get('/', [DeveloperController::class, 'index'])->name('developer.index');
+    Route::post('/keys', [DeveloperController::class, 'storeKey'])->name('developer.keys.store');
+    Route::delete('/keys/{apiKey}', [DeveloperController::class, 'destroyKey'])->name('developer.keys.destroy');
 });

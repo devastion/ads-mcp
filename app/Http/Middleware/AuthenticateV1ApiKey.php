@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Actions\TouchMcpRequest;
 use App\Enums\ApiErrorCode;
 use App\Http\Exceptions\V1\ApiErrorException;
 use App\Models\ApiKey;
@@ -14,6 +15,8 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class AuthenticateV1ApiKey
 {
+    public function __construct(private readonly TouchMcpRequest $mcpRequests) {}
+
     /**
      * @param  Closure(Request): (Response)  $next
      */
@@ -37,6 +40,10 @@ class AuthenticateV1ApiKey
 
         $key->forceFill(['last_used_at' => now()])->saveQuietly();
         $request->attributes->set('api_key', $key);
+
+        if ($request->is('api/mcp')) {
+            $this->mcpRequests->handle($key);
+        }
 
         return $next($request);
     }

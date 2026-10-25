@@ -148,6 +148,57 @@ These apply to one walk: a chain of requests linked by `next_cursor`, with the s
 - **Quota.** 1,000 billed calls per key per UTC month. Over quota, v1 answers 403 `quota_exceeded` (not retryable) with `details.resets_at`. The check runs before the read and billing happens after it, so concurrent in-flight requests can overshoot 1,000 by a few calls; the billed count itself is exact.
 - **Exactness.** All counting comes from the `api_usages` table. Overlapping requests with the same `Idempotency-Key` serialize on a Postgres advisory lock, proven by `tests/Feature/Concurrency`.
 
+## Developer page
+
+Open [Developer tools](http://localhost:8000/developer) with `APP_ENV=local`. There is no login: the single local user owns every key. All developer routes return 404 outside the local environment, including when routes are cached. After pulling this change, apply the additive migration with `php artisan migrate --no-interaction`.
+
+Create keys with a name and scopes, copy the secret, then click **I've saved it**. The secret is shown only in the creation response and transient page state; it cannot be recovered after dismissal, navigation, or reload. The table lists prefixes, scopes, creation time, last use, and revocation status. Revoking a key blocks its next REST or MCP call. Developer page requests are never billed.
+
+Each key has its own quota of **1,000 billable calls per UTC month**. Usage is recounted from the same `api_usages` ledger used by billing on each page load; there is no separate counter. The [billing rule](#keys-limits-and-billing) applies to these counts. Dates display in your browser's local time with UTC tooltips; quota resets are shown in UTC and occur at 00:00 on the first day of the next month.
+
+### Connect Pi-Bolt
+
+1. Click **Create key for Pi-Bolt**. This creates a key named `Pi-Bolt` with only `search:read` scope.
+2. Copy the filled configuration into your **user-level** `~/.pi/agent/mcp.json`, preserving any other servers already configured there. Never put the secret in this repository's `.pi/mcp.json`.
+3. Restart Pi-Bolt and ask **Which niches can I search?**
+4. The page polls while waiting and shows **Connected** when the key's first authenticated MCP request arrives, including `initialize`. A billable search is not required. The timestamp updates at most once per minute.
+
+The configuration contains the real secret only immediately after creation. Later visits show `<YOUR_KEY>` instead. The newest active key named `Pi-Bolt` controls the status, and waiting resumes after reloading the page. Revoked keys are skipped. Troubleshooting tips appear after one minute of waiting.
+
+The generated template has this shape; this committed example contains no credential:
+
+```json
+{
+    "mcpServers": {
+        "gethookd": {
+            "url": "http://localhost:8000/api/mcp",
+            "headers": {
+                "Authorization": "Bearer <YOUR_KEY>"
+            }
+        }
+    }
+}
+```
+
+Run the page tests with `php artisan test --compact tests/Feature/Http/Controllers/Developer`. Manual checks remain: clipboard success and denial fallback, secret removal after dismissal/reload/navigation, connection with a real Pi-Bolt client, and a timed setup walkthrough. No under-five-minute setup claim has been verified.
+
 ## Unfinished
 
-- Parts 1–4: v1 search, MCP server, scopes, revocation, rate limits, metering and quotas, the developer page, `DESIGN.md`, `MCP_EVAL.md`, `AI_NOTES.md`.
+Status by part, against `ASSESSMENT.md`:
+
+| Part | Status | Still open |
+| --- | --- | --- |
+| 0. Data, seed, ingest, v0 | Done, frozen by the v0 contract test | Fresh-volume `docker compose up` not yet run end to end |
+| 1. v1 search | Done, with the OpenAPI drift test | Index migration for `(start_date, id)` and `(impression_rank, id)` and the `EXPLAIN` check were not built, so large-table performance is unproven |
+| 2. MCP server | Code is on `main` (`laravel/mcp`, the three tools, origin and envelope middleware, `routes/ai.php`). Its commit says the tests have not run as a suite | Run the MCP tests. Not built: the forwarded-call integration tests, the loopback run, and the `X-Gethookd-Origin` marker so MCP calls are metered as `mcp` (Part 2 open question Q-3). Evaluation (`MCP_EVAL.md`): not started |
+| 3. Keys, limits, metering | Scopes, revocation, the shared limiter, metering, idempotency, quota, and the concurrency test are on `main` | The limiter still uses the default cache store, not Redis. The Redis service was removed from `compose.yaml` in `b76463f`, though the PHP extension is still in the Dockerfile. The fail-closed change is not built |
+| 4. Developer page | Implemented: local-only key creation, secret-once copy, listing, revocation, ledger usage and Pi-Bolt connection panel | Manual clipboard, secret-lifetime, real-client and timed setup checks remain; see [Developer page](#developer-page) |
+| Docs | `AI_NOTES.md` is drafted; `DESIGN.md` is a 5-line stub | `DESIGN.md` (trade-offs, v0/v1 coexistence, breaking-change plan, what breaks at ~110M ads / 5–6M active) is not written. `MCP_EVAL.md` does not exist |
+
+### What I would do next
+
+1. Build the v1 indexes and run `EXPLAIN` on both sort orders at production scale. Without them, the first two parts of the design that break at 110 million ads are the `start_date` and `impression_rank` sorts with a cursor.
+2. Finish the MCP evaluation: run the frozen tasks in `docs/superpowers/eval/2026-10-25-mcp-frozen-tasks.md` through a real client and write `MCP_EVAL.md`.
+3. Confirm the Redis-backed, fail-closed rate limiter, then add a test that proves a Redis outage returns an error rather than an unlimited pass.
+4. Finish the developer page panels and write `DESIGN.md`.
+5. Run a clean-clone check of `docker compose up` and the test commands above, then update this section.

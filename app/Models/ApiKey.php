@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property list<string> $scopes
  * @property CarbonImmutable|null $revoked_at
  * @property CarbonImmutable|null $last_used_at
+ * @property CarbonImmutable|null $last_mcp_request_at
  */
 #[Fillable(['name', 'prefix', 'key_hash', 'scopes'])]
 class ApiKey extends Model
@@ -26,6 +27,7 @@ class ApiKey extends Model
             'scopes' => 'array',
             'revoked_at' => 'immutable_datetime',
             'last_used_at' => 'immutable_datetime',
+            'last_mcp_request_at' => 'immutable_datetime',
         ];
     }
 

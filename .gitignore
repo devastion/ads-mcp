@@ -40,3 +40,6 @@ yarn-error.log
 /boost.json
 /opencode.json
 /opencode.jsonc
+
+# MCP eval database snapshot
+/storage/eval
