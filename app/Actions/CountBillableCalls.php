@@ -34,6 +34,8 @@ class CountBillableCalls
         return $ids->mapWithKeys(fn (int $id): array => [$id => $counts[$id] ?? 0])->all();
     }
 
+    public const MONTHLY_LIMIT = 1000;
+
     public function resetsAt(CarbonInterface $now): CarbonImmutable
     {
         return CarbonImmutable::instance($now)->utc()->startOfMonth()->addMonth();
