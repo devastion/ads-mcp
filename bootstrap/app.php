@@ -33,7 +33,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // v0 callers depend on this exact body for every failure. Scoped to v0 so v1 can use its own errors.
         $exceptions->render(function (Throwable $exception, Request $request) {
             if ($request->is('api/v0', 'api/v0/*')) {
-                return response()->json(['error' => 'Invalid request'], 400);
+                $retryAfter = $exception instanceof TooManyRequestsHttpException ? $exception->getHeaders() : [];
+
+                return response()->json(['error' => 'Invalid request'], 400, $retryAfter);
             }
 
             return null;
@@ -67,8 +69,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 $code = ApiErrorCode::RateLimited;
                 $message = 'Too many requests.';
                 $nextStep = $code->defaultNextStep();
-                $details = [];
                 $headers = $exception->getHeaders();
+                $details = isset($headers['Retry-After']) ? ['retry_after_seconds' => (int) $headers['Retry-After']] : [];
             } else {
                 $code = ApiErrorCode::InternalError;
                 $message = 'Something went wrong on our side.';

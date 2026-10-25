@@ -328,6 +328,8 @@
                                     "invalid_parameter",
                                     "invalid_cursor",
                                     "cursor_mismatch",
+                                    "insufficient_scope",
+                                    "quota_exceeded",
                                     "rate_limited",
                                     "internal_error"
                                 ]

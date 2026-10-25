@@ -13,6 +13,8 @@ enum ApiErrorCode: string
     case InvalidParameter = 'invalid_parameter';
     case InvalidCursor = 'invalid_cursor';
     case CursorMismatch = 'cursor_mismatch';
+    case InsufficientScope = 'insufficient_scope';
+    case QuotaExceeded = 'quota_exceeded';
     case RateLimited = 'rate_limited';
     case InternalError = 'internal_error';
 
@@ -20,6 +22,7 @@ enum ApiErrorCode: string
     {
         return match ($this) {
             self::ApiKeyMissing, self::ApiKeyInvalid, self::ApiKeyInQuery => 401,
+            self::InsufficientScope, self::QuotaExceeded => 403,
             self::NotFound => 404,
             self::MethodNotAllowed => 405,
             self::UnknownParameter, self::InvalidParameter, self::InvalidCursor, self::CursorMismatch => 422,
@@ -42,6 +45,8 @@ enum ApiErrorCode: string
             self::ApiKeyMissing => 'Add an Authorization header with your API key.',
             self::ApiKeyInvalid => 'Check your API key and try again.',
             self::ApiKeyInQuery => 'Send the API key in the Authorization header, not as a query parameter.',
+            self::InsufficientScope => 'Use a key with the search:read scope.',
+            self::QuotaExceeded => 'Wait until the quota resets (see details.resets_at) or use a key on a larger plan.',
             self::NotFound => 'Check the request path.',
             self::MethodNotAllowed => 'Use one of the methods listed in the Allow header.',
             self::UnknownParameter => 'Remove the unknown parameter and try again.',
