@@ -1,6 +1,6 @@
 # Part 0 design: data model, seed, live ingest, v0 endpoint
 
-Date: 2026-10-24. Status: **approved by the user**. Spec: `ASSESSMENT.md` §0.1–0.4 (quoted below where it binds). Guard: `.agents/skills/v0-contract-guard/` (`references/v0-contract.md` is the v0 contract in checklist form).
+Date: 2026-10-25. Status: **approved by the user**. Spec: `ASSESSMENT.md` §0.1–0.4 (quoted below where it binds). Guard: `.agents/skills/v0-contract-guard/` (`references/v0-contract.md` is the v0 contract in checklist form).
 
 ## Intent and why
 

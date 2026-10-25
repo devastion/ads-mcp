@@ -90,11 +90,11 @@ it('returns 422 for literal unknown names instead of PHP-normalizing them', func
 ]);
 
 it('recognizes every approved parameter before filter rules are implemented', function () {
-    v1Search('q=serum&niche=skincare&format=video&status=active&started_after=2026-08-01&sort=newest&per_page=20&cursor=opaque')
+    v1Search('q=serum&niche=skincare&format=video&status=active&started_after=2026-08-01&sort=newest&per_page=20')
         ->assertOk()
-        ->assertExactJson(['data' => []]);
+        ->assertJsonPath('data', []);
 });
 
 it('returns the empty scaffold response without parameters', function () {
-    v1Search()->assertOk()->assertExactJson(['data' => []]);
+    v1Search()->assertOk()->assertJsonPath('data', []);
 });

@@ -9,6 +9,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class SearchAds
 {
+    public function __construct(private AdSearchPredicates $predicates) {}
+
     /**
      * Newest first, with no tiebreaker: v0 callers depend on this exact ordering rule.
      *
@@ -33,15 +35,10 @@ class SearchAds
      */
     private function matching(AdSearchFilters $filters): Builder
     {
-        return Ad::query()
-            ->when($filters->q !== null, fn ($query) => $query->where(function ($query) use ($filters): void {
-                $pattern = '%'.addcslashes((string) $filters->q, '\\%_').'%';
+        $niches = $filters->niche === null ? [] : [$filters->niche->value];
 
-                $query->whereLike('headline', $pattern)->orWhereLike('body_text', $pattern);
-            }))
-            ->when($filters->niche, fn ($query, $niche) => $query->where('niche', $niche))
-            ->when($filters->format, fn ($query, $format) => $query->where('format', $format))
-            ->when($filters->status, fn ($query, $status) => $query->where('status', $status))
+        return $this->predicates
+            ->apply(Ad::query(), $filters->q, $niches, $filters->format, $filters->status)
             ->orderByDesc('start_date');
     }
 }

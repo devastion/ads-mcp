@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\IssueApiKey;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
@@ -45,9 +46,62 @@ expect()->extend('toBeOne', function () {
 |
 */
 
+function v1Key(): string
+{
+    return app(IssueApiKey::class)->handle('v1 contract test')->secret;
+}
+
 function v1Search(string $query = ''): TestResponse
 {
-    return test()->getJson('/api/v1/ads'.($query === '' ? '' : '?'.$query));
+    return test()->getJson('/api/v1/ads'.($query === '' ? '' : '?'.$query), ['Authorization' => 'Bearer '.v1Key()]);
+}
+
+/**
+ * Follows next_cursor from $cursor (or from page 1 when null) and returns every id in order.
+ *
+ * @return list<int>
+ */
+function walkPages(string $query, ?string $cursor): array
+{
+    $ids = [];
+
+    for ($page = 1; ; $page++) {
+        if ($page > 1000) {
+            test()->fail('The walk did not end within 1000 pages.');
+        }
+
+        $parts = array_filter([$query, $cursor === null ? null : 'cursor='.urlencode($cursor)], fn (?string $part): bool => $part !== null && $part !== '');
+        $response = v1Search(implode('&', $parts));
+        $response->assertOk();
+
+        $ids = array_merge($ids, collect($response->json('data'))->pluck('id')->map(fn ($id): int => (int) $id)->all());
+
+        if ($response->json('has_more') !== true) {
+            return $ids;
+        }
+
+        $cursor = $response->json('next_cursor');
+
+        if (! is_string($cursor)) {
+            test()->fail('The page has more results but no next_cursor.');
+        }
+    }
+}
+
+/**
+ * @return list<int>
+ */
+function walkAll(string $query): array
+{
+    return walkPages($query, null);
+}
+
+/**
+ * @return list<int>
+ */
+function walkFrom(string $cursor, string $query): array
+{
+    return walkPages($query, $cursor);
 }
 
 function something()

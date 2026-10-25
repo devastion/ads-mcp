@@ -1,0 +1,266 @@
+{
+    "openapi": "3.1.2",
+    "info": {
+        "title": "Gethookd API v1",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000/api"
+        }
+    ],
+    "paths": {
+        "/v1/ads": {
+            "get": {
+                "operationId": "v1.ads",
+                "tags": [
+                    "Ad"
+                ],
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 200
+                        }
+                    },
+                    {
+                        "name": "niche",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "skincare",
+                                    "haircare",
+                                    "supplements",
+                                    "fitness",
+                                    "pet-supplies",
+                                    "home-decor",
+                                    "kitchen",
+                                    "apparel",
+                                    "jewelry",
+                                    "baby-kids",
+                                    "outdoor",
+                                    "tech-accessories"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "format",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "image",
+                                "video",
+                                "carousel"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "active",
+                                "inactive"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "started_after",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "newest",
+                                "impressions"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "cursor",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {}
+                                        },
+                                        "applied_filters": {
+                                            "type": "object"
+                                        },
+                                        "has_more": {
+                                            "type": "boolean"
+                                        },
+                                        "next_cursor": {
+                                            "type": "string"
+                                        },
+                                        "notes": {
+                                            "type": "array",
+                                            "prefixItems": [
+                                                {
+                                                    "type": "string",
+                                                    "const": "Impression rank is brand-relative: it orders ads within a brand, not across brands."
+                                                }
+                                            ],
+                                            "minItems": 1,
+                                            "maxItems": 1
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "applied_filters",
+                                        "has_more",
+                                        "next_cursor",
+                                        "notes"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "description": "Missing, invalid or query-string API key. The `error.code` says which.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiError"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Send the API key as `Authorization: Bearer <key>`. A key in the query string is refused.",
+                "scheme": "bearer"
+            }
+        },
+        "schemas": {
+            "ApiError": {
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "type": "object",
+                        "properties": {
+                            "code": {
+                                "type": "string",
+                                "enum": [
+                                    "api_key_missing",
+                                    "api_key_invalid",
+                                    "api_key_in_query",
+                                    "not_found",
+                                    "method_not_allowed",
+                                    "unknown_parameter",
+                                    "invalid_parameter",
+                                    "invalid_cursor",
+                                    "cursor_mismatch",
+                                    "rate_limited",
+                                    "internal_error"
+                                ]
+                            },
+                            "message": {
+                                "type": "string"
+                            },
+                            "next_step": {
+                                "type": "string"
+                            },
+                            "retryable": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "code",
+                            "message",
+                            "next_step",
+                            "retryable"
+                        ]
+                    }
+                },
+                "required": [
+                    "error"
+                ],
+                "title": "ApiError"
+            }
+        },
+        "responses": {
+            "ValidationException": {
+                "description": "Validation error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Errors overview."
+                                },
+                                "errors": {
+                                    "type": "object",
+                                    "description": "A detailed description of each field that failed validation.",
+                                    "additionalProperties": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "required": [
+                                "message",
+                                "errors"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,6 +1,6 @@
 # Part 1 design: v1 search API
 
-Date: 2026-10-24. Status: **draft, awaiting the user's approval**. Spec: `ASSESSMENT.md` Part 1 (quoted where it binds). Base: `part-0-v0` at `7ffe49a` (the Part 0 history; `main` differs only in docs). Guard: `.agents/skills/v0-contract-guard/`.
+Date: 2026-10-25. Status: **draft, awaiting the user's approval**. Spec: `ASSESSMENT.md` Part 1 (quoted where it binds). Base: `part-0-v0` at `7ffe49a` (the Part 0 history; `main` differs only in docs). Guard: `.agents/skills/v0-contract-guard/`.
 
 Decision labels: **[user]** = chosen by the user in brainstorming. **[my call]** = my default, marked so it can be vetoed at this review.
 
