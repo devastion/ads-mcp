@@ -18,12 +18,20 @@ JUDGE_MIN_SCORE = 0.8
 
 
 @setup
-def authorize_ads_server() -> None:
-    """Send the run's search:read key as a bearer header; mcp-eval does not expand env vars in YAML."""
+def configure_run() -> None:
+    """Send the run's search:read key as a bearer header; mcp-eval does not expand env vars in YAML.
+
+    MCP_EVAL_RUN_DIR (set by scripts/mcp-eval.sh run) keeps each run's per-task traces apart,
+    instead of every run overwriting the same files in reporting.output_dir.
+    """
     key = os.environ.get("ADS_KEY")
     if not key:
         raise RuntimeError("ADS_KEY is not set; create one with 'scripts/mcp-eval.sh key'")
-    get_settings().mcp.servers["ads"].headers = {"Authorization": f"Bearer {key}"}
+    settings = get_settings()
+    settings.mcp.servers["ads"].headers = {"Authorization": f"Bearer {key}"}
+    run_dir = os.environ.get("MCP_EVAL_RUN_DIR")
+    if run_dir:
+        settings.reporting.output_dir = run_dir
 
 
 async def judge(session: TestSession, prompt: str, response: str, rubric: str) -> None:

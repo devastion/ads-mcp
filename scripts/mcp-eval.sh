@@ -14,11 +14,12 @@
 #   scripts/mcp-eval.sh key       create a search:read key for this run (secret printed once)
 #   scripts/mcp-eval.sh check     call tools/list with ADS_KEY and list the tool names
 #   scripts/mcp-eval.sh run LABEL replay the five frozen tasks with mcp-eval (needs ADS_KEY, ANTHROPIC_API_KEY, uv)
-#   scripts/mcp-eval.sh selftest  run the offline tests for the suite's evaluators (no server, no model)
+#   scripts/mcp-eval.sh diff A B  compare two runs (labels or run directories) as a Markdown table
+#   scripts/mcp-eval.sh selftest  run the offline tests for the suite's evaluators and diff (no server, no model)
 #
-# The suite (mcp-eval config, tasks, evaluators) lives in scripts/mcp-eval/. Reports go to
-# storage/eval/reports/<UTC time>-<LABEL>/. First run: prepare, serve, key, check, run before.
-# Every later run: reset, serve, key (reset drops earlier keys), run LABEL.
+# The suite (mcp-eval config, tasks, evaluators) lives in scripts/mcp-eval/. Reports and per-task
+# traces go to storage/eval/reports/<UTC time>-<LABEL>/. First run: prepare, serve, key, check, run before.
+# Every later run: reset, serve, key (reset drops earlier keys), run LABEL, then diff before LABEL.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -201,7 +202,7 @@ cmd_run() {
 
     # mcp-eval imports the task files by path, so the suite directory must be importable for evaluators.py.
     local status=0
-    (cd "$SUITE_DIR" && PYTHONPATH=. uv run --frozen mcp-eval run tasks/ \
+    (cd "$SUITE_DIR" && MCP_EVAL_RUN_DIR="${PWD}/../../${out}" PYTHONPATH=. uv run --frozen mcp-eval run tasks/ \
         --json "../../${out}/results.json" \
         --markdown "../../${out}/results.md" \
         --html "../../${out}/results.html") || status=$?
@@ -209,6 +210,30 @@ cmd_run() {
     log "reports in ${out} (results.json keeps every tool call and its arguments)"
     [[ "$status" -eq 0 ]] || log "at least one frozen check failed; read the reports before changing any description"
     return "$status"
+}
+
+# Resolves a run label to its newest report directory; a directory path is used as given.
+resolve_run() {
+    local ref="$1" dir=""
+    if [[ -d "$ref" ]]; then
+        dir="$ref"
+    else
+        for candidate in "${REPORTS_DIR}"/*Z-"${ref}"; do
+            [[ -d "$candidate" ]] && dir="$candidate"
+        done
+    fi
+    [[ -n "$dir" && -s "${dir}/results.json" ]] || die "no run '${ref}' with a results.json under ${REPORTS_DIR}"
+    realpath "$dir"
+}
+
+cmd_diff() {
+    [[ $# -eq 2 ]] || die "usage: scripts/mcp-eval.sh diff BEFORE AFTER (run labels or run directories)"
+    require_uv
+    local before after
+    before=$(resolve_run "$1")
+    after=$(resolve_run "$2")
+    (cd "$SUITE_DIR" && uv run --frozen python compare.py \
+        "${before}/results.json" "${after}/results.json" "$(basename "$before")" "$(basename "$after")")
 }
 
 cmd_selftest() {
@@ -224,9 +249,10 @@ case "${1:-}" in
     key)      cmd_key ;;
     check)    cmd_check ;;
     run)      cmd_run "${2:-}" ;;
+    diff)     shift; cmd_diff "$@" ;;
     selftest) cmd_selftest ;;
     *)
-        sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'
+        sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'
         exit 1
         ;;
 esac
