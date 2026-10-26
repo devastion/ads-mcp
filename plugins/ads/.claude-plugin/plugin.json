@@ -1,0 +1,24 @@
+{
+    "name": "ads",
+    "displayName": "Ads",
+    "version": "0.1.0",
+    "description": "Search and read synthetic ad data through the ads MCP server.",
+    "author": {
+        "name": "devastion"
+    },
+    "userConfig": {
+        "api_key": {
+            "type": "string",
+            "title": "API key",
+            "description": "A key with search:read scope, created on the developer page (http://localhost:8000/developer). Stored in secure storage, not settings.json.",
+            "required": true,
+            "sensitive": true
+        },
+        "mcp_url": {
+            "type": "string",
+            "title": "MCP endpoint URL",
+            "description": "Full URL of the ads MCP endpoint. Change it only if the app does not run on localhost:8000.",
+            "default": "http://localhost:8000/api/mcp"
+        }
+    }
+}

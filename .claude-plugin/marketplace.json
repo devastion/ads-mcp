@@ -1,0 +1,14 @@
+{
+    "name": "ads",
+    "owner": {
+        "name": "devastion"
+    },
+    "description": "Connects Claude Code to the ads MCP server in this repository.",
+    "plugins": [
+        {
+            "name": "ads",
+            "source": "./plugins/ads",
+            "description": "Search and read synthetic ad data through the ads MCP server."
+        }
+    ]
+}
