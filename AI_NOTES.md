@@ -12,14 +12,9 @@ I've used `obra/superpowers`. You can read the [./docs] - they are AI generated.
 
 ## Parts
 
-### What could be improved?
-
-- Using `superpowers` (brainstorming, writing plans, etc) skills is great, but I didn't specify that [./ASSESSMENT.md] is main source of truth that need to be followed. This way it started recommending some alternative implementations, which is not bad, because it let me decise through questionaire, but probably the implementation details could be better. I decided that in the end of complete plans will be faster for me to edit the features that are not implemented right, rather than trying to configure it.
-- It would be better to specify custom commands for executing various things (servers, tests etc) that use docker and not local machine. It would improve reprodicibility (virtually 100% if I locked all the deps or used NixOS) and sandbox the execution of the commands.
-
 ### Part 0
 
-- Took me around 1h 30m - 2h.
+- Took me around 1h 30m.
 - I setup initial development environment. Used `laravel new` scaffolder and official docker skill to scaffold docker (I have it globally installed).
 - Setup initial agentic workflow environment. Read the provided laravel skills and search for other proper skills that might help me.
 - Add v0 endpoint
@@ -39,6 +34,13 @@ I've used `obra/superpowers`. You can read the [./docs] - they are AI generated.
 ### Part 4
 
 - Took me around 15m (+ 15m homelab vps deploy)
+
+### What could be improved?
+
+I had a busy weekend and did a lot of the stuff using AI only via mobile phone connecting to Claude Code @ home pc. I could setup my agents rules better to reduce agent steering and unknowns. I should've setup the docker commands in the beginning (for testing, executing etc), because using pc's local environment wasn't optimal and produced some errors such as not being able to connect to db in tests. After all the code generation I start reviewing it. I started with tests to ensure they are proper and following the assessment.
+
+- Using `superpowers` (brainstorming, writing plans, etc) skills is great, but I didn't specify that [./ASSESSMENT.md] is main source of truth that need to be followed. This way it started recommending some alternative implementations, which is not bad, because it let me decise through questionaire, but probably the implementation details could be better. I decided that in the end of complete plans will be faster for me to edit the features that are not implemented right, rather than trying to configure it.
+
 
 ## Skills
 

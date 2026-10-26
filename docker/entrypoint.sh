@@ -8,9 +8,12 @@ if [ "${APP_BOOTSTRAP:-0}" = "1" ]; then
 
     composer install --no-interaction --prefer-dist
 
-    if [ ! -f node_modules/.package-lock.json ] || [ package-lock.json -nt node_modules/.package-lock.json ]; then
+    if [ ! -f node_modules/.package-lock.json ] || ! cmp -s package-lock.json node_modules/.docker-package-lock.json; then
         npm ci
+        cp package-lock.json node_modules/.docker-package-lock.json
     fi
+
+    npm run build
 
     grep -q '^APP_KEY=.\+' .env || php artisan key:generate --no-interaction
     php artisan migrate --force --no-interaction

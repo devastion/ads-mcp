@@ -1,6 +1,7 @@
+# syntax=docker/dockerfile:1
 FROM node:24-bookworm-slim AS node
 
-FROM php:8.5-cli-bookworm
+FROM php:8.5-cli-bookworm AS app
 
 ARG UID=1000
 ARG GID=1000
@@ -25,6 +26,16 @@ RUN groupadd --gid "${GID}" app \
 
 WORKDIR /app
 USER app
+
+COPY --chown=app:app composer.json composer.lock ./
+RUN composer install --no-interaction --prefer-dist --no-scripts --no-autoloader
+
+COPY --chown=app:app package.json package-lock.json ./
+RUN npm ci \
+    && cp package-lock.json node_modules/.docker-package-lock.json
+
+COPY --chown=app:app . .
+RUN composer dump-autoload --no-interaction --optimize
 
 COPY --chown=app:app --chmod=755 docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]
