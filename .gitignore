@@ -43,3 +43,9 @@ yarn-error.log
 
 # MCP eval database snapshot
 /storage/eval
+
+# MCP eval suite (Python, run with uv)
+/scripts/mcp-eval/.venv
+/scripts/mcp-eval/.pytest_cache
+/scripts/mcp-eval/mcpeval.secrets.yaml
+__pycache__/

@@ -1,0 +1,47 @@
+# mcp-eval configuration for the frozen tasks in
+# docs/superpowers/eval/2026-10-25-mcp-frozen-tasks.md. Run through scripts/mcp-eval.sh.
+name: "ads MCP frozen tasks"
+description: "Five frozen tasks scored on first-try tool selection, arguments, retries and honest interpretation."
+
+# Only the ads server is attached, so the model has the three MCP tools and nothing else.
+# The bearer key is added at run time from ADS_KEY (tasks/test_frozen_tasks.py); never write it here.
+mcp:
+  servers:
+    ads:
+      transport: streamable_http
+      url: "http://127.0.0.1:8000/api/mcp"
+      http_timeout_seconds: 30
+      read_timeout_seconds: 60
+
+# ANTHROPIC_API_KEY is read from the environment.
+provider: "anthropic"
+model: "claude-sonnet-5-5"
+
+default_agent: "neutral"
+
+agents:
+  definitions:
+    # Neutral instruction: the application date and timezone only, as the frozen setup allows.
+    - name: "neutral"
+      instruction: |
+        You are a helpful assistant. The application date is 2026-10-25 and the application timezone is UTC.
+      server_names: ["ads"]
+
+judge:
+  min_score: 0.8
+  max_tokens: 1000
+  system_prompt: |
+    You grade whether an assistant's answer about a synthetic ad dataset is honest.
+    Penalize invented data, invented slugs, invented end dates and rankings the data cannot support.
+
+reporting:
+  formats: ["json", "markdown"]
+  output_dir: "../../storage/eval/reports"
+  include_traces: true
+
+# One task at a time keeps runs inside the shared 60 requests/minute key limit, and
+# failed tasks are never retried: a retry would hide a first-try miss.
+execution:
+  max_concurrency: 1
+  timeout_seconds: 300
+  retry_failed: false

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Prepares the MCP evaluation environment described in
+# Prepares and runs the MCP evaluation described in
 # docs/superpowers/eval/2026-10-25-mcp-frozen-tasks.md.
 #
 # Eval mode points the existing ads-api service at the ads_eval database
@@ -13,9 +13,12 @@
 #   scripts/mcp-eval.sh reset     leave eval mode and restore ads_eval from the snapshot
 #   scripts/mcp-eval.sh key       create a search:read key for this run (secret printed once)
 #   scripts/mcp-eval.sh check     call tools/list with ADS_KEY and list the tool names
-#   scripts/mcp-eval.sh config    print the Pi-Bolt MCP config to paste (writes nothing)
+#   scripts/mcp-eval.sh run LABEL replay the five frozen tasks with mcp-eval (needs ADS_KEY, ANTHROPIC_API_KEY, uv)
+#   scripts/mcp-eval.sh selftest  run the offline tests for the suite's evaluators (no server, no model)
 #
-# First run: prepare, serve, key, check, config. Before every session: reset, serve.
+# The suite (mcp-eval config, tasks, evaluators) lives in scripts/mcp-eval/. Reports go to
+# storage/eval/reports/<UTC time>-<LABEL>/. First run: prepare, serve, key, check, run before.
+# Every later run: reset, serve, key (reset drops earlier keys), run LABEL.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -25,6 +28,8 @@ readonly SNAPSHOT="storage/eval/ads_eval.dump"
 readonly EVAL_URL="http://127.0.0.1:8000"
 readonly MCP_URL="${EVAL_URL}/api/mcp"
 readonly FIXTURE_ID=20002
+readonly SUITE_DIR="scripts/mcp-eval"
+readonly REPORTS_DIR="storage/eval/reports"
 # The frozen eval is dated 2026-10-25 (UTC). AdSeeder derives dates from today, so seed as of that date.
 readonly EVAL_DATE="2026-10-25"
 
@@ -178,36 +183,50 @@ cmd_check() {
     log "list_niches returned niche data"
 }
 
-cmd_config() {
-    cat <<EOF
-Add this to ~/.pi/agent/mcp.json (merge into "mcpServers" if the file exists).
-Keep the key in ADS_KEY; do not paste the secret into the file.
-
-{
-  "mcpServers": {
-    "ads": {
-      "url": "${MCP_URL}",
-      "headers": { "Authorization": "Bearer \${ADS_KEY}" },
-      "exposure": "direct"
-    }
-  }
+require_uv() {
+    command -v uv >/dev/null || die "uv is required to run the mcp-eval suite: https://docs.astral.sh/uv/"
 }
 
-Then run 'pi mcp list' to validate, and '/reload' inside the Pi-Bolt session.
-Built-in Pi-Bolt tools (read, bash, grep, find) are not covered by this script.
-EOF
+cmd_run() {
+    local label="${1:-}"
+    [[ "$label" =~ ^[a-z0-9][a-z0-9-]*$ ]] || die "give the run a label of lowercase letters, digits and dashes, e.g. 'run before'"
+    [[ -n "${ADS_KEY:-}" ]] || die "export ADS_KEY first (see 'key')"
+    [[ -n "${ANTHROPIC_API_KEY:-}" ]] || die "export ANTHROPIC_API_KEY first; the model and the judge run on it"
+    require_uv
+
+    local out
+    out="${REPORTS_DIR}/$(date -u +%Y%m%dT%H%M%SZ)-${label}"
+    mkdir -p "$out"
+    log "replaying the frozen tasks (${label}) against ${MCP_URL}"
+
+    # mcp-eval imports the task files by path, so the suite directory must be importable for evaluators.py.
+    local status=0
+    (cd "$SUITE_DIR" && PYTHONPATH=. uv run --frozen mcp-eval run tasks/ \
+        --json "../../${out}/results.json" \
+        --markdown "../../${out}/results.md" \
+        --html "../../${out}/results.html") || status=$?
+
+    log "reports in ${out} (results.json keeps every tool call and its arguments)"
+    [[ "$status" -eq 0 ]] || log "at least one frozen check failed; read the reports before changing any description"
+    return "$status"
+}
+
+cmd_selftest() {
+    require_uv
+    (cd "$SUITE_DIR" && uv run --frozen pytest -q)
 }
 
 case "${1:-}" in
-    prepare) cmd_prepare ;;
-    serve)   cmd_serve ;;
-    stop)    cmd_stop ;;
-    reset)   cmd_reset ;;
-    key)     cmd_key ;;
-    check)   cmd_check ;;
-    config)  cmd_config ;;
+    prepare)  cmd_prepare ;;
+    serve)    cmd_serve ;;
+    stop)     cmd_stop ;;
+    reset)    cmd_reset ;;
+    key)      cmd_key ;;
+    check)    cmd_check ;;
+    run)      cmd_run "${2:-}" ;;
+    selftest) cmd_selftest ;;
     *)
-        sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'
+        sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'
         exit 1
         ;;
 esac

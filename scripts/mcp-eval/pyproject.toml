@@ -1,0 +1,17 @@
+[project]
+name = "ads-mcp-eval"
+version = "0.1.0"
+description = "Replays the frozen MCP evaluation tasks against the ads MCP server with mcp-eval."
+requires-python = ">=3.11"
+dependencies = [
+    "mcpevals[pytest]==0.1.10",
+    # mcp-agent, which mcpevals runs on, imports mcp.server.fastmcp, removed in mcp 2.
+    "mcp>=1.13,<2",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
