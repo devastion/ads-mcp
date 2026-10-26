@@ -11,7 +11,7 @@ use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Attributes\Version;
 use Laravel\Mcp\Server\Tool;
 
-#[Name('gethookd-ads')]
+#[Name('ads')]
 #[Version('1.0.0')]
 #[Instructions('Read-only access to synthetic ad data. Discover niche slugs with list_niches, find ads with search_ads, and read full copy with get_ad. Every successful read is billable.')]
 class AdsServer extends Server

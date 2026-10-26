@@ -18,7 +18,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsDestructive(false)]
 #[IsOpenWorld(false)]
 #[Description('List all supported niche slugs and display names. Use these exact slugs in search_ads.niche (an array); for example pet-supplies, not Pet Supplies. Use for vocabulary discovery, not ad search, brand ranking or impression totals. Returns the full fixed catalogue, no pagination or counts. A successful call is billable; retry protection requires a per-call Idempotency-Key HTTP header.')]
-class ListNichesTool extends GethookdTool
+class ListNichesTool extends AdsTool
 {
     protected string $name = 'list_niches';
 

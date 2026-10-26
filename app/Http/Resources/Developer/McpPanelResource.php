@@ -19,7 +19,7 @@ class McpPanelResource
             'endpoint_url' => $endpoint,
             'client' => self::CLIENT,
             'config_template' => json_encode([
-                'mcpServers' => ['gethookd' => [
+                'mcpServers' => ['ads' => [
                     'url' => $endpoint,
                     'headers' => ['Authorization' => 'Bearer <YOUR_KEY>'],
                 ]],

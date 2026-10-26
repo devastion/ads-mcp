@@ -1,7 +1,7 @@
 {
     "openapi": "3.1.2",
     "info": {
-        "title": "Gethookd API v1",
+        "title": "Ads API v1",
         "version": "1.0.0"
     },
     "servers": [

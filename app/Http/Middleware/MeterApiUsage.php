@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 class MeterApiUsage
 {
     /** Set only by the trusted server-side MCP forwarder; stripped from every other request. */
-    public const ORIGIN_HEADER = 'X-Gethookd-Origin';
+    public const ORIGIN_HEADER = 'X-Ads-Origin';
 
     public function __construct(
         private readonly RecordApiUsage $recorder,

@@ -125,7 +125,7 @@ These are not answered. The user needs to decide them before the work they block
 |---|---|---|---|
 | Q-1 | **Approve the Part 4 spec?** It is still a draft. | Part 4 Task 0 gate | Approve, or request changes. |
 | Q-2 | **Confirm the Redis outage mapping.** When Redis is down, v1 returns `internal_error` (500, retryable) and v0 returns 400 `Invalid request`. | Part 3 Redis change | Confirm, or pick another code. Default: confirm. |
-| Q-3 | **MCP surface marker mechanism.** `X-Gethookd-Origin` is currently stripped, so MCP calls are metered as `v1`. Options: a server-side secret or a loopback-only check. | Part 2 Task 3, accurate `surface = mcp` | Choose one. No default yet. |
+| Q-3 | **MCP surface marker mechanism.** `X-Ads-Origin` is currently stripped, so MCP calls are metered as `v1`. Options: a server-side secret or a loopback-only check. | Part 2 Task 3, accurate `surface = mcp` | Choose one. No default yet. |
 | Q-4 | **Which base for the `part-2-mcp` worktree?** The plan requires Part 3 complete first. | Part 2 Task 3 onward | Wait for Part 3 to merge, or use the current base. |
 | Q-5 | **Part 2 evaluation timing and inputs.** Which `get_ad` id, and which application date D? | Part 2 Task 12 | User decides. The baseline must be frozen before any run. |
 | Q-6 | **Part 4 base.** Part 3 must be merged, and Part 2's MCP endpoint should exist for the "Connected" check. If Part 2 is not built, the README says the check is unverified. | Part 4 Task 0 | Wait, or ship with the check marked unverified. |

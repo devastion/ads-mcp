@@ -3,7 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Actions\ConsumeRateLimit;
-use App\Actions\Mcp\Tools\GethookdTool;
+use App\Actions\Mcp\Tools\AdsTool;
 use App\Actions\Mcp\ValidateToolArguments;
 use App\Models\ApiKey;
 use Closure;
@@ -31,7 +31,7 @@ class ClassifyMcpOperation
         }
 
         $toolName = $isObject && ($body['method'] ?? null) === 'tools/call' ? ($body['params']['name'] ?? null) : null;
-        $isKnownTool = is_string($toolName) && in_array($toolName, GethookdTool::NAMES, true);
+        $isKnownTool = is_string($toolName) && in_array($toolName, AdsTool::NAMES, true);
 
         if ($isKnownTool && app(ValidateToolArguments::class)->handle($toolName, $body['params']['arguments'] ?? []) === null) {
             return $next($request);
@@ -47,7 +47,7 @@ class ClassifyMcpOperation
             return response()->json([
                 'jsonrpc' => '2.0',
                 'id' => $body['id'],
-                'error' => ['code' => -32602, 'message' => 'Unknown tool. Valid tools: '.implode(', ', GethookdTool::NAMES).'.'],
+                'error' => ['code' => -32602, 'message' => 'Unknown tool. Valid tools: '.implode(', ', AdsTool::NAMES).'.'],
             ], 400);
         }
 

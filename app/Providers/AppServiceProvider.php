@@ -76,7 +76,7 @@ class AppServiceProvider extends ServiceProvider
     protected function applyV1Document(OpenApi $openApi): void
     {
         $openApi->setInfo(
-            InfoObject::make('Gethookd API v1')->setVersion('1.0.0'),
+            InfoObject::make('Ads API v1')->setVersion('1.0.0'),
         );
 
         foreach ($openApi->paths as $path) {
