@@ -22,6 +22,7 @@ I've used `obra/superpowers`. You can read the [./docs] - they are AI generated.
 ### Part 1
 
 - Took me 3h
+- Here the things got messy. Agent needed a lot of steering and plan revising.
 
 ### Part 2
 
@@ -34,6 +35,7 @@ I've used `obra/superpowers`. You can read the [./docs] - they are AI generated.
 ### Part 4
 
 - Took me around 15m (+ 15m homelab vps deploy)
+  - PS: homelab died (oops) and I am not home, so I could't provide hosted mcp server for easier setup
 
 ### What could be improved?
 

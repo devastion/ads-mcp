@@ -13,7 +13,7 @@ if [ "${APP_BOOTSTRAP:-0}" = "1" ]; then
         cp package-lock.json node_modules/.docker-package-lock.json
     fi
 
-    npm run build
+    npm run build && npm run build:ssr
 
     grep -q '^APP_KEY=.\+' .env || php artisan key:generate --no-interaction
     php artisan migrate --force --no-interaction

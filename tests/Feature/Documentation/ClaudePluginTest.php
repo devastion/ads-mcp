@@ -95,7 +95,7 @@ it('leaves niche slugs to list_niches instead of hard-coding them', function () 
 
 it('names only error codes the API returns', function () {
     preg_match_all('/`([a-z]+(?:_[a-z]+)+)`/', File::get(base_path(CLAUDE_PLUGIN_SKILL)), $matches);
-    $responseFields = ['next_cursor', 'body_next_offset', 'body_has_more', 'retry_after_seconds', 'resets_at', 'next_step', 'started_after', 'impression_rank', 'search_ads', 'get_ad', 'list_niches'];
+    $responseFields = ['next_cursor', 'body_next_offset', 'body_has_more', 'retry_after_seconds', 'resets_at', 'next_step', 'started_after', 'impression_rank', 'search_ads', 'get_ad', 'list_niches', 'start_date'];
     $codes = array_values(array_diff($matches[1], $responseFields));
 
     expect($codes)->each->toBeIn(array_column(ApiErrorCode::cases(), 'value'));
