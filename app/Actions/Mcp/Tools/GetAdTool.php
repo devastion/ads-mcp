@@ -19,7 +19,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsDestructive(false)]
 #[IsOpenWorld(false)]
 #[Description('Fetch one ad by its exact id from search_ads. Returns complete brand/headline, running dates, countries, brand-relative impression_rank, discovered_at and derived days_active, plus a body_text page. Use search_ads to find ads, not this tool. body_offset counts Unicode characters from zero; body_limit defaults to 1000, maximum 1000. Follow body_next_offset while body_has_more is true to retrieve all copy without gaps. For active ads days_active is today minus start_date; for inactive ads it is end_date minus start_date, whole days, using the same implementation as REST/v0. A rank cannot compare different brands. Each successful detail page is billable; retry protection requires the per-call Idempotency-Key HTTP header.')]
-class GetAdTool extends GethookdTool
+class GetAdTool extends AdsTool
 {
     protected string $name = 'get_ad';
 

@@ -21,7 +21,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[IsDestructive(false)]
 #[IsOpenWorld(false)]
 #[Description('Search synthetic ads by literal keyword and exact filters; returns compact previews, applied_filters and a next_cursor. Use get_ad for complete copy and dates, and list_niches to discover niche slugs. Omitted status includes active AND inactive ads. started_after is exclusive YYYY-MM-DD (start_date > date), not discovery date. sort=impressions orders brand-relative rank, missing ranks last; it cannot identify the brand with the most impressions or compare impression totals. Do not use for brand-performance rankings. Repeat the same filters/sort with next_cursor to continue; cursor results exclude later inserts subject to v1\'s documented in-flight-insert caveat. limit defaults to 5, maximum 10. Successful reads, including empty results, are billable; retry billing protection requires a stable per-call Idempotency-Key HTTP header.')]
-class SearchAdsTool extends GethookdTool
+class SearchAdsTool extends AdsTool
 {
     protected string $name = 'search_ads';
 

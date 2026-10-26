@@ -107,7 +107,7 @@ State of `part-3-keys-metering`, by plan task. Test results are not recorded her
 | 2. Revocation, key on the request | Staged, not committed: `RevokeApiKey`, `api-key:revoke`, the auth middleware changes. |
 | 3. Shared limiter | Staged: `ConsumeRateLimit`, `ThrottleApiKey`, v0 `Retry-After` passthrough, v1 `details.retry_after_seconds`. Still on the default cache store, so the Redis/fail-closed change is not built. |
 | 4. Scope enforcement | Staged: `RequireScope`, `insufficient_scope`, `quota_exceeded` codes. |
-| 5. Ledger and metering | Staged: `api_usages`, `ApiUsage`, `RecordApiUsage`, `MeterApiUsage`. `surface` is `v0` or `v1` from the path. `X-Gethookd-Origin` is always stripped, so `mcp` is never recorded yet (open in Part 2). |
+| 5. Ledger and metering | Staged: `api_usages`, `ApiUsage`, `RecordApiUsage`, `MeterApiUsage`. `surface` is `v0` or `v1` from the path. `X-Ads-Origin` is always stripped, so `mcp` is never recorded yet (open in Part 2). |
 | 6. Concurrency proof | In progress: `tests/Feature/Concurrency/MeteringConcurrencyTest.php`, untracked. |
 | 7. Quota | In progress: `CheckApiQuota` (per key, using `RecordApiUsage::alreadyBilled`) and its tests, untracked. Further unstaged edits sit in `RecordApiUsage` and `MeterApiUsage`. |
 | 8. v0 pins, README, final checks | Not started. |

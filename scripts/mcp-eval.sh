@@ -12,7 +12,7 @@
 #   scripts/mcp-eval.sh stop      leave eval mode (ads-api back on the dev database, queue restarted)
 #   scripts/mcp-eval.sh reset     leave eval mode and restore ads_eval from the snapshot
 #   scripts/mcp-eval.sh key       create a search:read key for this run (secret printed once)
-#   scripts/mcp-eval.sh check     call tools/list with GETHOOKD_KEY and list the tool names
+#   scripts/mcp-eval.sh check     call tools/list with ADS_KEY and list the tool names
 #   scripts/mcp-eval.sh config    print the Pi-Bolt MCP config to paste (writes nothing)
 #
 # First run: prepare, serve, key, check, config. Before every session: reset, serve.
@@ -146,14 +146,14 @@ cmd_reset() {
 cmd_key() {
     log "creating a search:read key in ${DB_NAME}. The secret is printed once; copy it now."
     artisan api-key:create "mcp-eval-$(date -u +%Y%m%dT%H%M%SZ)" --scope=search:read --no-interaction
-    echo "Export it for this shell: export GETHOOKD_KEY='<secret>'"
+    echo "Export it for this shell: export ADS_KEY='<secret>'"
 }
 
 cmd_check() {
-    [[ -n "${GETHOOKD_KEY:-}" ]] || die "export GETHOOKD_KEY first (see 'key')"
+    [[ -n "${ADS_KEY:-}" ]] || die "export ADS_KEY first (see 'key')"
     local body
     body=$(curl -fsS -X POST "$MCP_URL" \
-        -H "Authorization: Bearer ${GETHOOKD_KEY}" \
+        -H "Authorization: Bearer ${ADS_KEY}" \
         -H 'Content-Type: application/json' \
         -H 'Accept: application/json, text/event-stream' \
         -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}') || die "tools/list failed; is 'serve' running?"
@@ -169,7 +169,7 @@ cmd_check() {
     # A real call proves the REST forwarding works, not just the tool list.
     local call
     call=$(curl -fsS -m 30 -X POST "$MCP_URL" \
-        -H "Authorization: Bearer ${GETHOOKD_KEY}" \
+        -H "Authorization: Bearer ${ADS_KEY}" \
         -H 'Content-Type: application/json' \
         -H 'Accept: application/json, text/event-stream' \
         -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"list_niches","arguments":{}}}') \
@@ -181,13 +181,13 @@ cmd_check() {
 cmd_config() {
     cat <<EOF
 Add this to ~/.pi/agent/mcp.json (merge into "mcpServers" if the file exists).
-Keep the key in GETHOOKD_KEY; do not paste the secret into the file.
+Keep the key in ADS_KEY; do not paste the secret into the file.
 
 {
   "mcpServers": {
-    "gethookd": {
+    "ads": {
       "url": "${MCP_URL}",
-      "headers": { "Authorization": "Bearer \${GETHOOKD_KEY}" },
+      "headers": { "Authorization": "Bearer \${ADS_KEY}" },
       "exposure": "direct"
     }
   }

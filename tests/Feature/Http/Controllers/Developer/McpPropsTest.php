@@ -19,7 +19,7 @@ it('provides a secret-free Pi-Bolt user config and no connection before a key ex
         ->where('mcp.endpoint_url', url('/api/mcp'))
         ->where('mcp.connection', null)
         ->where('mcp.config_template', function (string $template): bool {
-            return json_decode($template, true, flags: JSON_THROW_ON_ERROR) === ['mcpServers' => ['gethookd' => [
+            return json_decode($template, true, flags: JSON_THROW_ON_ERROR) === ['mcpServers' => ['ads' => [
                 'url' => url('/api/mcp'),
                 'headers' => ['Authorization' => 'Bearer <YOUR_KEY>'],
             ]]];

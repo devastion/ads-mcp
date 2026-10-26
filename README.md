@@ -170,7 +170,7 @@ The generated template has this shape; this committed example contains no creden
 ```json
 {
     "mcpServers": {
-        "gethookd": {
+        "ads": {
             "url": "http://localhost:8000/api/mcp",
             "headers": {
                 "Authorization": "Bearer <YOUR_KEY>"
@@ -190,7 +190,7 @@ Status by part, against `ASSESSMENT.md`:
 | --- | --- | --- |
 | 0. Data, seed, ingest, v0 | Done, frozen by the v0 contract test | Fresh-volume `docker compose up` not yet run end to end |
 | 1. v1 search | Done, with the OpenAPI drift test | Index migration for `(start_date, id)` and `(impression_rank, id)` and the `EXPLAIN` check were not built, so large-table performance is unproven |
-| 2. MCP server | Code is on `main` (`laravel/mcp`, the three tools, origin and envelope middleware, `routes/ai.php`). Its commit says the tests have not run as a suite | Run the MCP tests. Not built: the forwarded-call integration tests, the loopback run, and the `X-Gethookd-Origin` marker so MCP calls are metered as `mcp` (Part 2 open question Q-3). Evaluation (`MCP_EVAL.md`): not started |
+| 2. MCP server | Code is on `main` (`laravel/mcp`, the three tools, origin and envelope middleware, `routes/ai.php`). Its commit says the tests have not run as a suite | Run the MCP tests. Not built: the forwarded-call integration tests, the loopback run, and the `X-Ads-Origin` marker so MCP calls are metered as `mcp` (Part 2 open question Q-3). Evaluation (`MCP_EVAL.md`): not started |
 | 3. Keys, limits, metering | Scopes, revocation, the shared limiter, metering, idempotency, quota, and the concurrency test are on `main` | The limiter still uses the default cache store, not Redis. The Redis service was removed from `compose.yaml` in `b76463f`, though the PHP extension is still in the Dockerfile. The fail-closed change is not built |
 | 4. Developer page | Implemented: local-only key creation, secret-once copy, listing, revocation, ledger usage and Pi-Bolt connection panel | Manual clipboard, secret-lifetime, real-client and timed setup checks remain; see [Developer page](#developer-page) |
 | Docs | `AI_NOTES.md` is drafted; `DESIGN.md` is a 5-line stub | `DESIGN.md` (trade-offs, v0/v1 coexistence, breaking-change plan, what breaks at ~110M ads / 5–6M active) is not written. `MCP_EVAL.md` does not exist |

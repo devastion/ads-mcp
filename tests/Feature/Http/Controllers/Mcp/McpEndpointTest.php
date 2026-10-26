@@ -22,7 +22,7 @@ it('answers initialize with the server identity and a negotiated protocol versio
 
     $response->assertOk()
         ->assertJsonPath('result.protocolVersion', '2025-11-25')
-        ->assertJsonPath('result.serverInfo.name', 'gethookd-ads');
+        ->assertJsonPath('result.serverInfo.name', 'ads');
 });
 
 it('lists exactly the three read-only tools by name', function () {
