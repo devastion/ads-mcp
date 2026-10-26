@@ -182,6 +182,20 @@ The generated template has this shape; this committed example contains no creden
 
 Run the page tests with `php artisan test --compact tests/Feature/Http/Controllers/Developer`. Manual checks remain: clipboard success and denial fallback, secret removal after dismissal/reload/navigation, connection with a real Pi-Bolt client, and a timed setup walkthrough. No under-five-minute setup claim has been verified.
 
+### Connect Claude Code
+
+1. Start the app and create a key with only `search:read` on the developer page. Copy the secret.
+2. In Claude Code, run `/plugin marketplace add devastion/ads-mcp` (or `/plugin marketplace add ./` from a clone), then `/plugin install ads@ads`.
+3. Paste the key when asked. Leave the endpoint at its default unless the app runs elsewhere (eval mode: `http://127.0.0.1:8000/api/mcp`).
+4. Run `/mcp`, check that `ads` is connected with 3 tools, then ask **Which niches can I search?**
+
+Notes:
+
+- The developer panel's **Connected** status follows only the newest key named `Pi-Bolt`. For a Claude Code key, check its **Last used** column.
+- Claude Code sends no `Idempotency-Key`, so a retried call is billed again.
+- The Part 2 evaluation still runs in Pi-Bolt.
+- To load the plugin from a clone without installing it, run `claude --plugin-dir plugins/ads`.
+
 ## Unfinished
 
 Status by part, against `ASSESSMENT.md`:

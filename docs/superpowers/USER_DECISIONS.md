@@ -103,6 +103,18 @@ Spec: `specs/2026-10-25-part4-developer-page-design.md`. Status: **draft, awaiti
 
 ---
 
+## Claude Code plugin
+
+Plan: `plans/2026-10-26-claude-code-plugin.md`. Status: decided 2026-10-26 in conversation, built on `claude/ads-plugin-plan`.
+
+| # | Decision | Status | Source |
+|---|---|---|---|
+| CC-1 | **Repo marketplace.** `.claude-plugin/marketplace.json` at the root, plugin in `plugins/ads/`. No root `.mcp.json`. | Active | (session) 2026-10-26 |
+| CC-2 | **Contents: MCP server plus one usage skill** (`ads:ad-research`). | Active | (session) 2026-10-26 |
+| CC-3 | **Plugin only.** Pi-Bolt stays the Part 2 evaluation client (P2-9) and the developer-panel client. | Active | (session) 2026-10-26 |
+
+---
+
 ## Cross-part decisions
 
 | # | Decision | Status | Source |

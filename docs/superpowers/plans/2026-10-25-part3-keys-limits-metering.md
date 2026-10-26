@@ -41,7 +41,7 @@
 
 ## Task 0: Branch and baseline
 
-- [ ] Commit the Part 3 spec and this plan on `part-2-mcp`. Create worktree `/Users/devastion/Projects/gethookd-worktrees/part-3-keys` on branch `part-3-keys-metering` from that commit. Copy `.env`; copy (not symlink) `vendor/` from `part-2-mcp`; run `composer dump-autoload`.
+- [ ] Commit the Part 3 spec and this plan on `part-2-mcp`. Create worktree `/Users/devastion/Projects/ads-worktrees/part-3-keys` on branch `part-3-keys-metering` from that commit. Copy `.env`; copy (not symlink) `vendor/` from `part-2-mcp`; run `composer dump-autoload`.
 - [ ] Run `php artisan test --compact` and the v0 guard. Record the baseline (272 tests passing at planning time).
 
 ## Task 1: Scopes, key columns, issuing
